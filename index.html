@@ -7,70 +7,134 @@ header{background:#1b2f6e;color:#fff;display:flex;align-items:center;padding:14p
 .logo{height:56px;background:#fff;border-radius:4px;padding:4px 8px}
 header h1{margin:0;font-size:22px}header small{opacity:.85}.sp{flex:1}
 .user{display:flex;align-items:center;gap:10px}.av{width:34px;height:34px;border-radius:50%;background:#8fa3d8;display:grid;place-items:center}
-.search{padding:14px 24px}.search input{width:100%;padding:12px;border:1px solid #bbb;border-radius:4px;font-size:15px}
-main{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:0 24px 24px;align-items:start}
+.search{padding:14px 24px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end}
+.search label{font-size:12px;color:#555;display:flex;flex-direction:column;gap:3px}
+.search input[type=text],.search input[type=date]{padding:10px;border:1px solid #bbb;border-radius:4px;font-size:14px}
+.search .free{flex:1;min-width:240px}.search .free input{width:100%}
+.search .chk{flex-direction:row;align-items:center;gap:6px;font-size:14px;color:#222;padding:10px 0}
+.search button{padding:10px 14px;border:1px solid #1b2f6e;background:#fff;color:#1b2f6e;border-radius:4px;cursor:pointer}
+main{display:grid;grid-template-columns:1fr 1fr 1fr 1.1fr;gap:16px;padding:0 24px 24px;align-items:start}
+aside{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;border:2px solid #1b2f6e;border-radius:6px;background:#fff;padding:14px}
+aside h2{color:#1b2f6e;font-size:16px;margin:0 0 8px}aside ul{margin:0;padding-left:18px}aside li{margin:6px 0;font-size:13px}
+@media(max-width:1200px){main{grid-template-columns:1fr 1fr}aside{position:static;max-height:none;grid-column:1/-1;order:-1}}
 .col{display:flex;flex-direction:column;gap:16px}
 .card{background:#f4f4f4;border-radius:6px;padding:16px;min-height:120px}
 .card h2{color:#e00;font-size:16px;margin:0 0 10px}
 .card h3{margin:10px 0 4px;font-size:14px}.card ul{margin:0;padding-left:20px}.card li{margin:3px 0;font-size:14px}
+.badge{background:#e00;color:#fff;border-radius:9px;font-size:11px;padding:1px 7px;margin-left:6px}
+.none{color:#777;font-size:14px}
 select{width:100%;padding:10px;font-size:14px;border:1px solid #bbb;border-radius:4px}
-.hide{display:none}
 </style></head><body>
 <header><img class="logo" src="logo.png" alt="Transport for NSW">
 <div><h1 id="title"></h1><small>Transport for NSW</small></div>
 <div class="sp"></div><div class="user"><div class="av">👤</div>John Doe</div></header>
-<div class="search"><input id="q" placeholder="Search incidents, applications, risks…"></div>
+<div class="search">
+<label class="free">Search<input type="text" id="q" placeholder="Free text: incident, application, cause, risk…"></label>
+<label>From<input type="date" id="from"></label>
+<label>To<input type="date" id="to"></label>
+<label class="chk"><input type="checkbox" id="rep"> Repeat incidents only (more than once in last 30 days)</label>
+<button id="clr">Clear</button>
+</div>
 <main>
 <div class="col"><select id="reg"></select><div class="card"><h2>Major Incident Root cause over the last 30 Days</h2><div id="root"></div></div></div>
 <div class="col"><div class="card"><h2>Applications contributing to the Major Incidents over the last 30 days</h2><ul id="apps"></ul></div>
 <div class="card"><h2>Major Incident Risks in RiskHub</h2><ul id="risks"></ul></div></div>
 <div class="col"><div class="card"><h2>Major Incidents over the last 7 Days</h2><ul id="inc"></ul></div>
 <div class="card"><h2>Major Incident Pattern over the last 30 Days</h2><svg id="ch" viewBox="0 0 400 220" width="100%"></svg></div></div>
+<aside><h2>Search results</h2><div id="rsum" class="none"></div><ul id="res"></ul></aside>
 </main>
 <script>
-const days=["11-11-26","12-11-26","13-11-26","14-11-26","15-11-26","16-11-26","17-11-26"];
-const DATA={
-"Regulatory":{
- root:{"Test Booking System (TBS)":["3 x Performance Issues","1 x Pod Hang issue","3 x Timeout Issues"],"Property Inquiry Management System (PIMS)":["1 x Certificate Expiry issue"],"DRIVES Core":["RP Registry issue","Pod restart issue","Router down issue"]},
- apps:["Test Booking System (TBS)","Property Inquiry Management System (PIMS)","DRIVES Core","Mail Relay","SMTP Server","Outlook","Teams","Office365"],
- risks:["RISK-1243 - TBS Replacement","RISK-1123 - PIMS Replacement","RISK-1120 - DRIVES24 Replacement with RIS24","RISK-1122 - Mail Relay Authentication"],
- inc:["Incident-1123: User cannot login to TBS","Incident-1124: PIMS Certificate expiry","Incident-1125: Microsoft Global Outage","Incident-1126: Log4j malware","Incident-1128: Network server restart","Incident-1129: Akamai licence expiry"],
- trend:[1,2,1,1,0,0,1]},
-"Safety Asset":{
- root:{"Rail Safety Monitoring System":["2 x Sensor Calibration issues","2 x Data Feed Timeout issues"],"Asset Inspection Mobile App":["3 x Offline Sync failures"],"Bridge Condition Register":["1 x Database Lock issue","1 x Report Generation issue"],"Level Crossing Alerts":["1 x SMS Gateway outage"]},
- apps:["Rail Safety Monitoring System","Asset Inspection Mobile App","Bridge Condition Register","Level Crossing Alerts","Tunnel Ventilation SCADA","Asset Photo Repository"],
- risks:["RISK-2011 - Safety Monitoring Sensor Obsolescence","RISK-2015 - Bridge Register Data Integrity","RISK-2022 - Level Crossing Alert Redundancy"],
- inc:["Incident-2101: Sensor feed dropped on Line 3","Incident-2102: Inspection app sync failure","Incident-2104: Bridge register DB lock","Incident-2105: SMS gateway outage","Incident-2107: SCADA alarm delay"],
- trend:[0,1,1,2,2,1,0]},
-"Platform":{
- root:{"Kubernetes Platform":["4 x Node Pressure issues","2 x Pod Eviction issues"],"API Gateway":["3 x Rate Limit misconfigurations","1 x Certificate Expiry issue"],"Identity Platform (SSO)":["2 x Token Service Timeouts"],"Messaging Bus":["1 x Queue Backlog issue"]},
- apps:["Kubernetes Platform","API Gateway","Identity Platform (SSO)","Messaging Bus","CI/CD Pipeline","Observability Stack","Container Registry"],
- risks:["RISK-3001 - Kubernetes Version End of Support","RISK-3008 - API Gateway Single Point of Failure","RISK-3014 - SSO Token Service Capacity","RISK-3019 - Messaging Bus Upgrade"],
- inc:["Incident-3201: Cluster node pressure in Prod","Incident-3202: API Gateway 502 errors","Incident-3204: SSO login latency","Incident-3205: Queue backlog on Messaging Bus","Incident-3207: Registry pull failures","Incident-3208: CI/CD runner outage"],
- trend:[2,1,3,2,1,2,1]},
-"Technology Solutions":{
- root:{"Office365":["2 x Mailbox Access issues","1 x Licensing issue"],"Teams":["2 x Call Quality issues","1 x Global Outage (vendor)"],"Network Services":["2 x WAN Link failures","1 x DNS Resolution issue"],"Service Desk Platform":["1 x Workflow Engine issue"]},
- apps:["Office365","Teams","Network Services","Service Desk Platform","VPN Gateway","Endpoint Management","Mail Relay"],
- risks:["RISK-4003 - VPN Gateway Capacity","RISK-4010 - WAN Link Resilience","RISK-4017 - Endpoint Management Agent Updates","RISK-1122 - Mail Relay Authentication"],
- inc:["Incident-4301: Microsoft Global Outage","Incident-4302: Teams call quality degradation","Incident-4303: WAN link failure Western Sydney","Incident-4305: DNS resolution intermittent","Incident-4306: VPN capacity exceeded"],
- trend:[1,1,2,0,1,3,1]}
+const TODAY=new Date(2026,10,17);
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const fmt=d=>`${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getFullYear()).slice(2)}`;
+// [application, root cause, title, risk, days-ago list]
+const SRC={
+"Regulatory":[
+["Test Booking System (TBS)","Performance Issues","TBS slow response","RISK-1243 - TBS Replacement",[1,9,22]],
+["Test Booking System (TBS)","Pod Hang issue","TBS pod hang","RISK-1243 - TBS Replacement",[6]],
+["Test Booking System (TBS)","Timeout Issues","User cannot login to TBS","RISK-1243 - TBS Replacement",[0,12,27]],
+["Property Inquiry Management System (PIMS)","Certificate Expiry issue","PIMS Certificate expiry","RISK-1123 - PIMS Replacement",[5]],
+["DRIVES Core","RP Registry issue","DRIVES RP Registry failure","RISK-1120 - DRIVES24 Replacement with RIS24",[15]],
+["DRIVES Core","Pod restart issue","DRIVES pod restart loop","RISK-1120 - DRIVES24 Replacement with RIS24",[19]],
+["DRIVES Core","Router down issue","Router down at DRIVES site","RISK-1120 - DRIVES24 Replacement with RIS24",[24]],
+["Mail Relay","Authentication issue","Mail Relay authentication failures","RISK-1122 - Mail Relay Authentication",[3,17]],
+["SMTP Server","Network server restart","Network server restart","",[2]],
+["Outlook","Vendor outage","Outlook web unavailable","",[11]],
+["Teams","Vendor outage","Microsoft Global Outage","",[4,21]],
+["Office365","Licence expiry","Akamai licence expiry","",[7]]],
+"Safety Asset":[
+["Rail Safety Monitoring System","Sensor Calibration issue","Sensor feed dropped on Line 3","RISK-2011 - Safety Monitoring Sensor Obsolescence",[2,10]],
+["Rail Safety Monitoring System","Data Feed Timeout issue","Monitoring feed timeout","RISK-2011 - Safety Monitoring Sensor Obsolescence",[5,18]],
+["Asset Inspection Mobile App","Offline Sync failure","Inspection app sync failure","",[1,8,20]],
+["Bridge Condition Register","Database Lock issue","Bridge register DB lock","RISK-2015 - Bridge Register Data Integrity",[13]],
+["Bridge Condition Register","Report Generation issue","Bridge report generation failure","RISK-2015 - Bridge Register Data Integrity",[26]],
+["Level Crossing Alerts","SMS Gateway outage","SMS gateway outage","RISK-2022 - Level Crossing Alert Redundancy",[0,16]],
+["Tunnel Ventilation SCADA","Alarm Delay","SCADA alarm delay","",[9]]],
+"Platform":[
+["Kubernetes Platform","Node Pressure issue","Cluster node pressure in Prod","RISK-3001 - Kubernetes Version End of Support",[0,3,8,14]],
+["Kubernetes Platform","Pod Eviction issue","Pod evictions in Prod","RISK-3001 - Kubernetes Version End of Support",[6,23]],
+["API Gateway","Rate Limit misconfiguration","API Gateway 502 errors","RISK-3008 - API Gateway Single Point of Failure",[2,11,25]],
+["API Gateway","Certificate Expiry issue","API Gateway cert expiry","RISK-3008 - API Gateway Single Point of Failure",[17]],
+["Identity Platform (SSO)","Token Service Timeout","SSO login latency","RISK-3014 - SSO Token Service Capacity",[4,19]],
+["Messaging Bus","Queue Backlog issue","Queue backlog on Messaging Bus","RISK-3019 - Messaging Bus Upgrade",[9]],
+["Container Registry","Pull failure","Registry pull failures","",[1]],
+["CI/CD Pipeline","Runner outage","CI/CD runner outage","",[28]]],
+"Technology Solutions":[
+["Office365","Mailbox Access issue","Mailbox access failures","",[3,14]],
+["Office365","Licensing issue","Licence assignment failure","",[21]],
+["Teams","Call Quality issue","Teams call quality degradation","",[1,7]],
+["Teams","Global Outage (vendor)","Microsoft Global Outage","",[4]],
+["Network Services","WAN Link failure","WAN link failure Western Sydney","RISK-4010 - WAN Link Resilience",[2,12]],
+["Network Services","DNS Resolution issue","DNS resolution intermittent","RISK-4010 - WAN Link Resilience",[18]],
+["VPN Gateway","Capacity exceeded","VPN capacity exceeded","RISK-4003 - VPN Gateway Capacity",[5,26]],
+["Service Desk Platform","Workflow Engine issue","Service desk workflow stuck","",[10]]]
 };
+const DATA={};let n=1100;
+for(const k in SRC){const all=[];
+ SRC[k].forEach(([app,cause,title,risk,ds])=>ds.forEach(d=>all.push({app,cause,title,risk,date:addDays(TODAY,-d)})));
+ all.sort((a,b)=>a.date-b.date).forEach(i=>i.id='Incident-'+(n++));
+ DATA[k]=all}
 const $=id=>document.getElementById(id);
-const ul=a=>a.map(t=>`<li>${t}</li>`).join('');
-$('reg').innerHTML=Object.keys(DATA).map(k=>`<option>${k}</option>`).join('');
-function chart(v){const x=i=>50+i*50,y=n=>180-n*(120/3);const max=3;
-let s='<text x="200" y="14" text-anchor="middle" font-size="12">Last 7 Days Incident Count</text>';
-for(let g=0;g<=max;g+=.5)s+=`<line x1="40" x2="380" y1="${y(g)}" y2="${y(g)}" stroke="#ddd"/><text x="34" y="${y(g)+4}" text-anchor="end" font-size="10">${g}</text>`;
-days.forEach((t,i)=>s+=`<text x="${x(i)}" y="200" text-anchor="middle" font-size="9">${t}</text>`);
-s+=`<polyline fill="none" stroke="#f90" stroke-width="3" points="${v.map((n,i)=>x(i)+','+y(n)).join(' ')}"/>`;
-v.forEach((n,i)=>s+=`<circle cx="${x(i)}" cy="${y(n)}" r="4" fill="#f90"><title>${days[i]}: ${n}</title></circle>`);
-$('ch').innerHTML=s}
-function render(){const k=$('reg').value,d=DATA[k];
-$('title').textContent=k+' Applications Major Incident Dashboard';
-$('root').innerHTML=Object.entries(d.root).map(([a,l])=>`<h3>${a}</h3><ul>${ul(l)}</ul>`).join('');
-$('apps').innerHTML=ul(d.apps);$('risks').innerHTML=ul(d.risks);$('inc').innerHTML=ul(d.inc);
-chart(d.trend);filter()}
-function filter(){const t=$('q').value.toLowerCase();
-document.querySelectorAll('li').forEach(l=>l.classList.toggle('hide',!!t&&!l.textContent.toLowerCase().includes(t)))}
-$('reg').onchange=render;$('q').oninput=filter;render();
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const ul=a=>a.length?a.map(t=>`<li>${t}</li>`).join(''):'<span class="none">No matching items</span>';
+$('reg').innerHTML=Object.keys(DATA).map(k=>`<option>${esc(k)}</option>`).join('');
+function chart(items,from,to){
+ const days=[];for(let d=new Date(from);d<=to;d=addDays(d,1))days.push(new Date(d));
+ const v=days.map(d=>items.filter(i=>iso(i.date)===iso(d)).length);
+ const max=Math.max(2,...v),W=340,x=i=>45+(days.length>1?i*W/(days.length-1):W/2),y=n=>180-n*(150/max);
+ let s='<text x="200" y="14" text-anchor="middle" font-size="12">Incident Count by Day</text>';
+ for(let g=0;g<=max;g+=Math.ceil(max/4))s+=`<line x1="40" x2="385" y1="${y(g)}" y2="${y(g)}" stroke="#ddd"/><text x="34" y="${y(g)+4}" text-anchor="end" font-size="10">${g}</text>`;
+ const step=Math.ceil(days.length/7);
+ days.forEach((d,i)=>{if(i%step===0)s+=`<text x="${x(i)}" y="200" text-anchor="middle" font-size="9">${fmt(d)}</text>`});
+ s+=`<polyline fill="none" stroke="#f90" stroke-width="3" points="${v.map((c,i)=>x(i)+','+y(c)).join(' ')}"/>`;
+ v.forEach((c,i)=>s+=`<circle cx="${x(i)}" cy="${y(c)}" r="3.5" fill="#f90"><title>${fmt(days[i])}: ${c}</title></circle>`);
+ $('ch').innerHTML=s}
+function render(){
+ const k=$('reg').value;$('title').textContent=k+' Applications Major Incident Dashboard';
+ const from=$('from').value?new Date($('from').value+'T00:00'):addDays(TODAY,-29);
+ const to=$('to').value?new Date($('to').value+'T00:00'):TODAY;
+ const q=$('q').value.trim().toLowerCase();
+ const last30=DATA[k].filter(i=>i.date>=addDays(TODAY,-29));
+ const cnt={};last30.forEach(i=>{const key=i.app+'|'+i.cause;cnt[key]=(cnt[key]||0)+1});
+ const isRep=i=>cnt[i.app+'|'+i.cause]>1;
+ const row=i=>`${i.id}: ${esc(i.title)} <small>(${fmt(i.date)})</small>${isRep(i)?'<span class="badge">repeat x'+cnt[i.app+'|'+i.cause]+'</span>':''}`;
+ // static sections: always the full last 30 days for the selected category
+ const byApp={};last30.forEach(i=>{const a=byApp[i.app]=byApp[i.app]||{};a[i.cause]=(a[i.cause]||0)+1});
+ $('root').innerHTML=Object.entries(byApp).map(([a,cs])=>`<h3>${esc(a)}</h3><ul>${Object.entries(cs).map(([c,m])=>`<li>${m} x ${esc(c)}</li>`).join('')}</ul>`).join('');
+ $('apps').innerHTML=ul([...new Set(last30.map(i=>esc(i.app)))]);
+ $('risks').innerHTML=ul([...new Set(last30.map(i=>i.risk).filter(Boolean))].map(esc));
+ const l7=last30.filter(i=>i.date>=addDays(TODAY,-6));
+ $('inc').innerHTML=ul([...l7].reverse().map(row));
+ chart(l7,addDays(TODAY,-6),TODAY);
+ // search results side panel
+ const active=q||$('rep').checked||$('from').value!==iso(addDays(TODAY,-29))||$('to').value!==iso(TODAY);
+ if(!active){$('rsum').textContent='Enter free text, a date range or tick "repeat incidents" to see results here.';$('res').innerHTML='';return}
+ const items=DATA[k].filter(i=>i.date>=from&&i.date<=to&&(!$('rep').checked||isRep(i))&&
+  (!q||[i.id,i.title,i.app,i.cause,i.risk].join(' ').toLowerCase().includes(q)));
+ $('rsum').textContent=`${items.length} incident(s) · ${fmt(from)} to ${fmt(to)}${$('rep').checked?' · repeats only':''}`;
+ $('res').innerHTML=items.length?[...items].reverse().map(i=>`<li>${row(i)}<br><small>${esc(i.app)} – ${esc(i.cause)}</small></li>`).join(''):'<span class="none">No matching incidents</span>'}
+function reset(){$('from').value=iso(addDays(TODAY,-29));$('to').value=iso(TODAY);$('q').value='';$('rep').checked=false;render()}
+['reg','q','from','to','rep'].forEach(id=>$(id).addEventListener(id==='q'?'input':'change',render));
+$('q').addEventListener('input',render);$('clr').onclick=reset;reset();
 </script></body></html>
