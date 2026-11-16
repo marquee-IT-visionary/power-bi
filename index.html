@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<title>Regulatory Applications Major Incident Dashboard</title>
+<title>Major Incident Dashboard</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#fff;color:#222}
 header{background:#1b2f6e;color:#fff;display:flex;align-items:center;padding:14px 24px;gap:20px}
@@ -8,7 +8,7 @@ header{background:#1b2f6e;color:#fff;display:flex;align-items:center;padding:14p
 header h1{margin:0;font-size:22px}header small{opacity:.85}.sp{flex:1}
 .user{display:flex;align-items:center;gap:10px}.av{width:34px;height:34px;border-radius:50%;background:#8fa3d8;display:grid;place-items:center}
 .search{padding:14px 24px}.search input{width:100%;padding:12px;border:1px solid #bbb;border-radius:4px;font-size:15px}
-main{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:0 24px 24px}
+main{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:0 24px 24px;align-items:start}
 .col{display:flex;flex-direction:column;gap:16px}
 .card{background:#f4f4f4;border-radius:6px;padding:16px;min-height:120px}
 .card h2{color:#e00;font-size:16px;margin:0 0 10px}
@@ -17,34 +17,60 @@ select{width:100%;padding:10px;font-size:14px;border:1px solid #bbb;border-radiu
 .hide{display:none}
 </style></head><body>
 <header><img class="logo" src="logo.png" alt="Transport for NSW">
-<div><h1>Regulatory Applications Major Incident Dashboard</h1><small>Transport for NSW</small></div>
+<div><h1 id="title"></h1><small>Transport for NSW</small></div>
 <div class="sp"></div><div class="user"><div class="av">👤</div>John Doe</div></header>
 <div class="search"><input id="q" placeholder="Search incidents, applications, risks…"></div>
 <main>
-<div class="col">
-<select id="reg"><option>Regulatory</option><option>Transport</option><option>Roads</option></select>
-<div class="card"><h2>Major Incident Root cause over the last 30 Days</h2>
-<h3>Test Booking System (TBS)</h3><ul><li>3 x Performance Issues</li><li>1 x Pod Hang issue</li><li>3 x Timeout Issues</li></ul>
-<h3>Property Inquiry Management System (PIMS)</h3><ul><li>1 x Certificate Expiry issue</li></ul>
-<h3>DRIVES Core</h3><ul><li>RP Registry issue</li><li>Pod restart issue</li><li>Router down issue</li></ul></div></div>
-<div class="col">
-<div class="card"><h2>Applications contributing to the Major Incidents over the last 30 days</h2><ul>
-<li>Test Booking System (TBS)</li><li>Property Inquiry Management System (PIMS)</li><li>DRIVES Core</li><li>Mail Relay</li><li>SMTP Server</li><li>Outlook</li><li>Teams</li><li>Office365</li></ul></div>
-<div class="card"><h2>Major Incident Risks in RiskHub</h2><ul>
-<li>RISK-1243 - TBS Replacement</li><li>RISK-1123 - PIMS Replacement</li><li>RISK-1120 - DRIVES24 Replacement with RIS24</li><li>RISK-1122 - Mail Relay Authentication</li></ul></div></div>
-<div class="col">
-<div class="card"><h2>Major Incidents over the last 7 Days</h2><ul>
-<li>Incident-1123: User cannot login to TBS</li><li>Incident-1124: PIMS Certificate expiry</li><li>Incident-1125: Microsoft Global Outage</li><li>Incident-1126: Log4j malware</li><li>Incident-1128: Network server restart</li><li>Incident-1129: Akamai licence expiry</li></ul></div>
+<div class="col"><select id="reg"></select><div class="card"><h2>Major Incident Root cause over the last 30 Days</h2><div id="root"></div></div></div>
+<div class="col"><div class="card"><h2>Applications contributing to the Major Incidents over the last 30 days</h2><ul id="apps"></ul></div>
+<div class="card"><h2>Major Incident Risks in RiskHub</h2><ul id="risks"></ul></div></div>
+<div class="col"><div class="card"><h2>Major Incidents over the last 7 Days</h2><ul id="inc"></ul></div>
 <div class="card"><h2>Major Incident Pattern over the last 30 Days</h2><svg id="ch" viewBox="0 0 400 220" width="100%"></svg></div></div>
 </main>
 <script>
-const d=["11-11-26","12-11-26","13-11-26","14-11-26","15-11-26","16-11-26","17-11-26"],v=[1,2,1,1,0,0,1];
-const x=i=>50+i*50,y=n=>180-n*60;let s='<text x="200" y="14" text-anchor="middle" font-size="12">Last 7 Days Incident Count</text>';
-for(let g=0;g<=2.5;g+=.5)s+=`<line x1="40" x2="380" y1="${y(g)}" y2="${y(g)}" stroke="#ddd"/><text x="34" y="${y(g)+4}" text-anchor="end" font-size="10">${g}</text>`;
-d.forEach((t,i)=>s+=`<text x="${x(i)}" y="200" text-anchor="middle" font-size="9">${t}</text>`);
+const days=["11-11-26","12-11-26","13-11-26","14-11-26","15-11-26","16-11-26","17-11-26"];
+const DATA={
+"Regulatory":{
+ root:{"Test Booking System (TBS)":["3 x Performance Issues","1 x Pod Hang issue","3 x Timeout Issues"],"Property Inquiry Management System (PIMS)":["1 x Certificate Expiry issue"],"DRIVES Core":["RP Registry issue","Pod restart issue","Router down issue"]},
+ apps:["Test Booking System (TBS)","Property Inquiry Management System (PIMS)","DRIVES Core","Mail Relay","SMTP Server","Outlook","Teams","Office365"],
+ risks:["RISK-1243 - TBS Replacement","RISK-1123 - PIMS Replacement","RISK-1120 - DRIVES24 Replacement with RIS24","RISK-1122 - Mail Relay Authentication"],
+ inc:["Incident-1123: User cannot login to TBS","Incident-1124: PIMS Certificate expiry","Incident-1125: Microsoft Global Outage","Incident-1126: Log4j malware","Incident-1128: Network server restart","Incident-1129: Akamai licence expiry"],
+ trend:[1,2,1,1,0,0,1]},
+"Safety Asset":{
+ root:{"Rail Safety Monitoring System":["2 x Sensor Calibration issues","2 x Data Feed Timeout issues"],"Asset Inspection Mobile App":["3 x Offline Sync failures"],"Bridge Condition Register":["1 x Database Lock issue","1 x Report Generation issue"],"Level Crossing Alerts":["1 x SMS Gateway outage"]},
+ apps:["Rail Safety Monitoring System","Asset Inspection Mobile App","Bridge Condition Register","Level Crossing Alerts","Tunnel Ventilation SCADA","Asset Photo Repository"],
+ risks:["RISK-2011 - Safety Monitoring Sensor Obsolescence","RISK-2015 - Bridge Register Data Integrity","RISK-2022 - Level Crossing Alert Redundancy"],
+ inc:["Incident-2101: Sensor feed dropped on Line 3","Incident-2102: Inspection app sync failure","Incident-2104: Bridge register DB lock","Incident-2105: SMS gateway outage","Incident-2107: SCADA alarm delay"],
+ trend:[0,1,1,2,2,1,0]},
+"Platform":{
+ root:{"Kubernetes Platform":["4 x Node Pressure issues","2 x Pod Eviction issues"],"API Gateway":["3 x Rate Limit misconfigurations","1 x Certificate Expiry issue"],"Identity Platform (SSO)":["2 x Token Service Timeouts"],"Messaging Bus":["1 x Queue Backlog issue"]},
+ apps:["Kubernetes Platform","API Gateway","Identity Platform (SSO)","Messaging Bus","CI/CD Pipeline","Observability Stack","Container Registry"],
+ risks:["RISK-3001 - Kubernetes Version End of Support","RISK-3008 - API Gateway Single Point of Failure","RISK-3014 - SSO Token Service Capacity","RISK-3019 - Messaging Bus Upgrade"],
+ inc:["Incident-3201: Cluster node pressure in Prod","Incident-3202: API Gateway 502 errors","Incident-3204: SSO login latency","Incident-3205: Queue backlog on Messaging Bus","Incident-3207: Registry pull failures","Incident-3208: CI/CD runner outage"],
+ trend:[2,1,3,2,1,2,1]},
+"Technology Solutions":{
+ root:{"Office365":["2 x Mailbox Access issues","1 x Licensing issue"],"Teams":["2 x Call Quality issues","1 x Global Outage (vendor)"],"Network Services":["2 x WAN Link failures","1 x DNS Resolution issue"],"Service Desk Platform":["1 x Workflow Engine issue"]},
+ apps:["Office365","Teams","Network Services","Service Desk Platform","VPN Gateway","Endpoint Management","Mail Relay"],
+ risks:["RISK-4003 - VPN Gateway Capacity","RISK-4010 - WAN Link Resilience","RISK-4017 - Endpoint Management Agent Updates","RISK-1122 - Mail Relay Authentication"],
+ inc:["Incident-4301: Microsoft Global Outage","Incident-4302: Teams call quality degradation","Incident-4303: WAN link failure Western Sydney","Incident-4305: DNS resolution intermittent","Incident-4306: VPN capacity exceeded"],
+ trend:[1,1,2,0,1,3,1]}
+};
+const $=id=>document.getElementById(id);
+const ul=a=>a.map(t=>`<li>${t}</li>`).join('');
+$('reg').innerHTML=Object.keys(DATA).map(k=>`<option>${k}</option>`).join('');
+function chart(v){const x=i=>50+i*50,y=n=>180-n*(120/3);const max=3;
+let s='<text x="200" y="14" text-anchor="middle" font-size="12">Last 7 Days Incident Count</text>';
+for(let g=0;g<=max;g+=.5)s+=`<line x1="40" x2="380" y1="${y(g)}" y2="${y(g)}" stroke="#ddd"/><text x="34" y="${y(g)+4}" text-anchor="end" font-size="10">${g}</text>`;
+days.forEach((t,i)=>s+=`<text x="${x(i)}" y="200" text-anchor="middle" font-size="9">${t}</text>`);
 s+=`<polyline fill="none" stroke="#f90" stroke-width="3" points="${v.map((n,i)=>x(i)+','+y(n)).join(' ')}"/>`;
-v.forEach((n,i)=>s+=`<circle cx="${x(i)}" cy="${y(n)}" r="4" fill="#f90"><title>${d[i]}: ${n}</title></circle>`);
-document.getElementById('ch').innerHTML=s;
-document.getElementById('q').addEventListener('input',e=>{const t=e.target.value.toLowerCase();
-document.querySelectorAll('li').forEach(l=>l.classList.toggle('hide',t&&!l.textContent.toLowerCase().includes(t)))});
+v.forEach((n,i)=>s+=`<circle cx="${x(i)}" cy="${y(n)}" r="4" fill="#f90"><title>${days[i]}: ${n}</title></circle>`);
+$('ch').innerHTML=s}
+function render(){const k=$('reg').value,d=DATA[k];
+$('title').textContent=k+' Applications Major Incident Dashboard';
+$('root').innerHTML=Object.entries(d.root).map(([a,l])=>`<h3>${a}</h3><ul>${ul(l)}</ul>`).join('');
+$('apps').innerHTML=ul(d.apps);$('risks').innerHTML=ul(d.risks);$('inc').innerHTML=ul(d.inc);
+chart(d.trend);filter()}
+function filter(){const t=$('q').value.toLowerCase();
+document.querySelectorAll('li').forEach(l=>l.classList.toggle('hide',!!t&&!l.textContent.toLowerCase().includes(t)))}
+$('reg').onchange=render;$('q').oninput=filter;render();
 </script></body></html>
