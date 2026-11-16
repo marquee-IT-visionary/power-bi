@@ -42,7 +42,7 @@ select{width:100%;padding:10px;font-size:14px;border:1px solid #bbb;border-radiu
 <div class="col"><div class="card"><h2>Applications contributing to the Major Incidents over the last 30 days</h2><ul id="apps"></ul></div>
 <div class="card"><h2>Major Incident Risks in RiskHub</h2><ul id="risks"></ul></div></div>
 <div class="col"><div class="card"><h2>Major Incidents over the last 7 Days</h2><ul id="inc"></ul></div>
-<div class="card"><h2>Major Incident Pattern over the last 7 Days</h2><svg id="ch" viewBox="0 0 400 220" width="100%"></svg></div></div>
+<div class="card"><h2>Major Incident Pattern over the last 30 Days</h2><svg id="ch" viewBox="0 0 400 215" width="100%"></svg></div></div>
 <aside><h2>Search results</h2><div id="rsum" class="none"></div><ul id="res"></ul></aside>
 </main>
 <footer>Copyright, Regulatory Applications, Transport for NSW</footer>
@@ -102,18 +102,16 @@ const $=id=>document.getElementById(id);
 const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const ul=a=>a.length?a.map(t=>`<li>${t}</li>`).join(''):'<span class="none">No matching items</span>';
 $('reg').innerHTML=Object.keys(DATA).map(k=>`<option>${esc(k)}</option>`).join('');
-function chart(items,from,to){
- const days=[];for(let d=new Date(from);d<=to;d=addDays(d,1))days.push(new Date(d));
- const v=days.map(d=>items.filter(i=>iso(i.date)===iso(d)).length);
- const max=Math.max(2,...v),W=340,x=i=>45+(days.length>1?i*W/(days.length-1):W/2),y=n=>180-n*(150/max);
- let s='<text x="200" y="14" text-anchor="middle" font-size="12">Incident Count by Day</text>';
- for(let g=0;g<=max;g+=Math.ceil(max/4))s+=`<line x1="40" x2="385" y1="${y(g)}" y2="${y(g)}" stroke="#ddd"/><text x="34" y="${y(g)+4}" text-anchor="end" font-size="10">${g}</text>`;
- const step=Math.ceil(days.length/7);
- days.forEach((d,i)=>{if(i%step===0)s+=`<text x="${x(i)}" y="200" text-anchor="middle" font-size="9">${fmt(d)}</text>`});
+function chart(items){
+ const wk=[];for(let i=4;i>=0;i--){const end=addDays(TODAY,-7*i),start=addDays(end,-6);wk.push({start:i===4?addDays(TODAY,-29):start,end})}
+ const v=wk.map(w=>items.filter(i=>i.date>=w.start&&i.date<=w.end).length);
+ const max=Math.max(4,...v),W=320,x=i=>55+i*W/(wk.length-1),y=n=>180-n*(150/max);
+ let s='<text x="200" y="14" text-anchor="middle" font-size="12">Incident Count by Week (last 30 days)</text>';
+ const gs=Math.ceil(max/5);for(let g=0;g<=max;g+=gs)s+=`<line x1="40" x2="385" y1="${y(g)}" y2="${y(g)}" stroke="#ddd"/><text x="34" y="${y(g)+4}" text-anchor="end" font-size="10">${g}</text>`;
+ wk.forEach((w,i)=>s+=`<text x="${x(i)}" y="196" text-anchor="middle" font-size="9">${fmt(w.start).slice(0,5)}</text><text x="${x(i)}" y="208" text-anchor="middle" font-size="9">to ${fmt(w.end).slice(0,5)}</text>`);
  s+=`<polyline fill="none" stroke="#f90" stroke-width="3" points="${v.map((c,i)=>x(i)+','+y(c)).join(' ')}"/>`;
- v.forEach((c,i)=>s+=`<circle cx="${x(i)}" cy="${y(c)}" r="3.5" fill="#f90"><title>${fmt(days[i])}: ${c}</title></circle>`);
- $('ch').innerHTML=s}
-function render(){
+ v.forEach((c,i)=>s+=`<circle cx="${x(i)}" cy="${y(c)}" r="4" fill="#f90"><title>${fmt(wk[i].start)} to ${fmt(wk[i].end)}: ${c}</title></circle><text x="${x(i)}" y="${y(c)-8}" text-anchor="middle" font-size="10">${c}</text>`);
+ $('ch').innerHTML=s}function render(){
  const k=$('reg').value;$('title').textContent=k+' Applications Major Incident Dashboard';
  const from=$('from').value?new Date($('from').value+'T00:00'):addDays(TODAY,-29);
  const to=$('to').value?new Date($('to').value+'T00:00'):TODAY;
@@ -129,7 +127,7 @@ function render(){
  $('risks').innerHTML=ul([...new Set(last30.map(i=>i.risk).filter(Boolean))].map(esc));
  const l7=last30.filter(i=>i.date>=addDays(TODAY,-6));
  $('inc').innerHTML=ul([...l7].reverse().map(row));
- chart(l7,addDays(TODAY,-6),TODAY);
+ chart(last30);
  // search results side panel
  const active=q||$('rep').checked||$('from').value!==iso(addDays(TODAY,-29))||$('to').value!==iso(TODAY);
  if(!active){$('rsum').textContent='Enter free text, a date range or tick "repeat incidents" to see results here.';$('res').innerHTML='';return}
