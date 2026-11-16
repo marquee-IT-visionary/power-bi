@@ -42,7 +42,7 @@ select{width:100%;padding:10px;font-size:14px;border:1px solid #bbb;border-radiu
 <div class="col"><div class="card"><h2>Applications contributing to the Major Incidents over the last 30 days</h2><ul id="apps"></ul></div>
 <div class="card"><h2>Major Incident Risks in RiskHub</h2><ul id="risks"></ul></div></div>
 <div class="col"><div class="card"><h2>Major Incidents over the last 7 Days</h2><ul id="inc"></ul></div>
-<div class="card"><h2>Major Incident Pattern over the last 30 Days</h2><svg id="ch" viewBox="0 0 400 220" width="100%"></svg></div></div>
+<div class="card"><h2>Major Incident Pattern over the last 7 Days</h2><svg id="ch" viewBox="0 0 400 220" width="100%"></svg></div></div>
 <aside><h2>Search results</h2><div id="rsum" class="none"></div><ul id="res"></ul></aside>
 </main>
 <footer>Copyright, Regulatory Applications, Transport for NSW</footer>
@@ -54,17 +54,17 @@ const fmt=d=>`${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).pa
 // [application, root cause, title, risk, days-ago list]
 const SRC={
 "Regulatory":[
-["Test Booking System (TBS)","Performance Issues","TBS slow response","RISK-1243 - TBS Replacement",[1,9,22]],
+["Test Booking System (TBS)","Performance Issues","TBS slow response","RISK-1243 - TBS Replacement",[1,1,9,22]],
 ["Test Booking System (TBS)","Pod Hang issue","TBS pod hang","RISK-1243 - TBS Replacement",[6]],
-["Test Booking System (TBS)","Timeout Issues","User cannot login to TBS","RISK-1243 - TBS Replacement",[0,12,27]],
+["Test Booking System (TBS)","Timeout Issues","User cannot login to TBS","RISK-1243 - TBS Replacement",[0,0,12,27]],
 ["Property Inquiry Management System (PIMS)","Certificate Expiry issue","PIMS Certificate expiry","RISK-1123 - PIMS Replacement",[5]],
 ["DRIVES Core","RP Registry issue","DRIVES RP Registry failure","RISK-1120 - DRIVES24 Replacement with RIS24",[15]],
 ["DRIVES Core","Pod restart issue","DRIVES pod restart loop","RISK-1120 - DRIVES24 Replacement with RIS24",[19]],
 ["DRIVES Core","Router down issue","Router down at DRIVES site","RISK-1120 - DRIVES24 Replacement with RIS24",[24]],
-["Mail Relay","Authentication issue","Mail Relay authentication failures","RISK-1122 - Mail Relay Authentication",[3,17]],
+["Mail Relay","Authentication issue","Mail Relay authentication failures","RISK-1122 - Mail Relay Authentication",[3,3,17]],
 ["SMTP Server","Network server restart","Network server restart","",[2]],
 ["Outlook","Vendor outage","Outlook web unavailable","",[11]],
-["Teams","Vendor outage","Microsoft Global Outage","",[4,21]],
+["Teams","Vendor outage","Microsoft Global Outage","",[4,4,21]],
 ["Office365","Licence expiry","Akamai licence expiry","",[7]]],
 "Safety Asset":[
 ["Rail Safety Monitoring System","Sensor Calibration issue","Sensor feed dropped on Line 3","RISK-2011 - Safety Monitoring Sensor Obsolescence",[2,10]],
@@ -75,9 +75,9 @@ const SRC={
 ["Level Crossing Alerts","SMS Gateway outage","SMS gateway outage","RISK-2022 - Level Crossing Alert Redundancy",[0,16]],
 ["Tunnel Ventilation SCADA","Alarm Delay","SCADA alarm delay","",[9]]],
 "Platform":[
-["Kubernetes Platform","Node Pressure issue","Cluster node pressure in Prod","RISK-3001 - Kubernetes Version End of Support",[0,3,8,14]],
+["Kubernetes Platform","Node Pressure issue","Cluster node pressure in Prod","RISK-3001 - Kubernetes Version End of Support",[0,0,0,3,8,14]],
 ["Kubernetes Platform","Pod Eviction issue","Pod evictions in Prod","RISK-3001 - Kubernetes Version End of Support",[6,23]],
-["API Gateway","Rate Limit misconfiguration","API Gateway 502 errors","RISK-3008 - API Gateway Single Point of Failure",[2,11,25]],
+["API Gateway","Rate Limit misconfiguration","API Gateway 502 errors","RISK-3008 - API Gateway Single Point of Failure",[2,2,11,25]],
 ["API Gateway","Certificate Expiry issue","API Gateway cert expiry","RISK-3008 - API Gateway Single Point of Failure",[17]],
 ["Identity Platform (SSO)","Token Service Timeout","SSO login latency","RISK-3014 - SSO Token Service Capacity",[4,19]],
 ["Messaging Bus","Queue Backlog issue","Queue backlog on Messaging Bus","RISK-3019 - Messaging Bus Upgrade",[9]],
