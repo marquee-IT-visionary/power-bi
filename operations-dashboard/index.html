@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Regulatory Applications Major Incident Dashboard</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#fff;color:#222}
+header{background:#1b2f6e;color:#fff;display:flex;align-items:center;padding:14px 24px;gap:20px}
+.logo{font-weight:700;border:2px solid #fff;padding:6px 10px;font-size:14px;line-height:1}
+header h1{margin:0;font-size:22px}header small{opacity:.85}.sp{flex:1}
+.user{display:flex;align-items:center;gap:10px}.av{width:34px;height:34px;border-radius:50%;background:#8fa3d8;display:grid;place-items:center}
+.search{padding:14px 24px}.search input{width:100%;padding:12px;border:1px solid #bbb;border-radius:4px;font-size:15px}
+main{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:0 24px 24px}
+.col{display:flex;flex-direction:column;gap:16px}
+.card{background:#f4f4f4;border-radius:6px;padding:16px;min-height:120px}
+.card h2{color:#e00;font-size:16px;margin:0 0 10px}
+.card h3{margin:10px 0 4px;font-size:14px}.card ul{margin:0;padding-left:20px}.card li{margin:3px 0;font-size:14px}
+select{width:100%;padding:10px;font-size:14px;border:1px solid #bbb;border-radius:4px}
+.hide{display:none}
+</style></head><body>
+<header><div class="logo">NSW<br>GOVERNMENT</div>
+<div><h1>Regulatory Applications Major Incident Dashboard</h1><small>Transport for NSW</small></div>
+<div class="sp"></div><div class="user"><div class="av">👤</div>John Doe</div></header>
+<div class="search"><input id="q" placeholder="Search incidents, applications, risks…"></div>
+<main>
+<div class="col">
+<select id="reg"><option>Regulatory</option><option>Transport</option><option>Roads</option></select>
+<div class="card"><h2>Major Incident Root cause over the last 30 Days</h2>
+<h3>Test Booking System (TBS)</h3><ul><li>3 x Performance Issues</li><li>1 x Pod Hang issue</li><li>3 x Timeout Issues</li></ul>
+<h3>Property Inquiry Management System (PIMS)</h3><ul><li>1 x Certificate Expiry issue</li></ul>
+<h3>DRIVES Core</h3><ul><li>RP Registry issue</li><li>Pod restart issue</li><li>Router down issue</li></ul></div></div>
+<div class="col">
+<div class="card"><h2>Applications contributing to the Major Incidents over the last 30 days</h2><ul>
+<li>Test Booking System (TBS)</li><li>Property Inquiry Management System (PIMS)</li><li>DRIVES Core</li><li>Mail Relay</li><li>SMTP Server</li><li>Outlook</li><li>Teams</li><li>Office365</li></ul></div>
+<div class="card"><h2>Major Incident Risks in RiskHub</h2><ul>
+<li>RISK-1243 - TBS Replacement</li><li>RISK-1123 - PIMS Replacement</li><li>RISK-1120 - DRIVES24 Replacement with RIS24</li><li>RISK-1122 - Mail Relay Authentication</li></ul></div></div>
+<div class="col">
+<div class="card"><h2>Major Incidents over the last 7 Days</h2><ul>
+<li>Incident-1123: User cannot login to TBS</li><li>Incident-1124: PIMS Certificate expiry</li><li>Incident-1125: Microsoft Global Outage</li><li>Incident-1126: Log4j malware</li><li>Incident-1128: Network server restart</li><li>Incident-1129: Akamai licence expiry</li></ul></div>
+<div class="card"><h2>Major Incident Pattern over the last 30 Days</h2><svg id="ch" viewBox="0 0 400 220" width="100%"></svg></div></div>
+</main>
+<script>
+const d=["11-11-26","12-11-26","13-11-26","14-11-26","15-11-26","16-11-26","17-11-26"],v=[1,2,1,1,0,0,1];
+const x=i=>50+i*50,y=n=>180-n*60;let s='<text x="200" y="14" text-anchor="middle" font-size="12">Last 7 Days Incident Count</text>';
+for(let g=0;g<=2.5;g+=.5)s+=`<line x1="40" x2="380" y1="${y(g)}" y2="${y(g)}" stroke="#ddd"/><text x="34" y="${y(g)+4}" text-anchor="end" font-size="10">${g}</text>`;
+d.forEach((t,i)=>s+=`<text x="${x(i)}" y="200" text-anchor="middle" font-size="9">${t}</text>`);
+s+=`<polyline fill="none" stroke="#f90" stroke-width="3" points="${v.map((n,i)=>x(i)+','+y(n)).join(' ')}"/>`;
+v.forEach((n,i)=>s+=`<circle cx="${x(i)}" cy="${y(n)}" r="4" fill="#f90"><title>${d[i]}: ${n}</title></circle>`);
+document.getElementById('ch').innerHTML=s;
+document.getElementById('q').addEventListener('input',e=>{const t=e.target.value.toLowerCase();
+document.querySelectorAll('li').forEach(l=>l.classList.toggle('hide',t&&!l.textContent.toLowerCase().includes(t)))});
+</script></body></html>
